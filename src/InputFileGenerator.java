@@ -14,17 +14,15 @@ public class InputFileGenerator {
         //dna string to be used
         StringBuilder dna = new StringBuilder();
 
-        //Create pure string
-        for (int i = 0; i < TOTAL_LINES; i++) {
-            dna.append(generateRandomString(LINE_LENGTH)).append("\n");
-        }
-
         //create k-mer, add mutations to k-mer
         StringBuilder[] kmers = createKMERS();
 
         System.out.println("Inserted (mutated) Kmers:");
         System.out.println(Arrays.toString(kmers));
-        //inject into dna string
+
+        //create dna string, inject kmers
+        createDNA(kmers, dna);
+
 
         //Write to file
         try (FileWriter writer = new FileWriter("input.txt")) {
@@ -34,6 +32,18 @@ public class InputFileGenerator {
             //System.err.println("Error writing to file: " + e.getMessage());
         }
     }
+
+    private static void createDNA(StringBuilder[] kmers, StringBuilder dna) {
+        SecureRandom random = new SecureRandom();
+        for (int i = 0; i < TOTAL_LINES; i++) {
+            StringBuilder line = new StringBuilder(generateRandomString(LINE_LENGTH));
+            int replacement_index = random.nextInt(LINE_LENGTH-KMER.length());
+
+            line.replace(replacement_index, replacement_index + KMER.length(), kmers[i].toString());
+            dna.append(line).append("\n");
+        }
+    }
+
 
     private static void mutate(StringBuilder[] kmers, int mutationCount) {
         SecureRandom random = new SecureRandom();
