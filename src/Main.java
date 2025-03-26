@@ -1,3 +1,4 @@
+import javax.sound.midi.SysexMessage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.security.SecureRandom;
@@ -5,14 +6,18 @@ import java.util.*;
 
 public class Main {
 
+    private static final int DeadIterationCount = 10;
     private static final int A = 0;
     private static final int C = 1;
     private static final int G = 2;
     private static final int T = 3;
 
     public static void main(String[] args) {
-        String[] bestMotifs = new String[InputFileGenerator.TOTAL_LINES];
         Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Choose preferred search method: ");
+        String searchMethod = scanner.nextLine();
+
         System.out.print("Enter consensus string length: ");
         int consensusStringLen = scanner.nextInt();
 
@@ -21,25 +26,144 @@ public class Main {
         //Read generated dna
         String[] sequences = readDNAFile();
 
+        if(searchMethod.equalsIgnoreCase("r"))
+            randomizedMotifSearch(sequences, consensusStringLen);
+
+    }
+
+    private static void randomizedMotifSearch(String[] sequences, int consensusStringLen) {
+        String[] bestMotifs = new String[InputFileGenerator.TOTAL_LINES];
+        int deadIterCount = 0;
         //Generate random motifs
-        String[] motifs = initiateMotifs(sequences , consensusStringLen);
+        String[] motifs = initiateMotifs(sequences, consensusStringLen);
 
         bestMotifs = motifs.clone();
 
         System.out.println("initial motifs: " + Arrays.toString(bestMotifs));
 
 
-        //REPEAT UNTIL CONVERGENCE
+        do {
 
-        float[][] profileMatrix = createProfileMatrix(motifs);
+            float[][] profileMatrix = createProfileMatrix(motifs);
 
-        System.out.println("\n" + Arrays.deepToString(profileMatrix));
+            System.out.println("\n" + Arrays.deepToString(profileMatrix));
 
-        motifs = setMotifs(sequences, profileMatrix, consensusStringLen);
+            motifs = setMotifs(sequences, profileMatrix, consensusStringLen);
 
-        System.out.println("\n" + Arrays.toString(motifs));
+            System.out.println("\n" + Arrays.toString(motifs));
 
-        //calculateMotifScores();
+            float motifsScore = calculateMotifScores(motifs, profileMatrix);
+            float bestMotifsScore = calculateMotifScores(bestMotifs, profileMatrix);
+
+            System.out.print("\nPrevious best motifs score: " + bestMotifsScore + "\n");
+            System.out.print("\nFound motifs score: " + motifsScore + "\n");
+
+            if (motifsScore > bestMotifsScore) {
+                bestMotifs = motifs.clone();
+                bestMotifsScore = motifsScore;
+            }
+            else {
+                deadIterCount++;
+            }
+
+            if(deadIterCount >= DeadIterationCount) {
+                System.out.print("\nLast best motifs score: " + bestMotifsScore + "\n");
+                break;
+            }
+
+            System.out.print("\nNew best motifs score: " + bestMotifsScore + "\n");
+
+        } while (true);
+
+        String consensusString = findConsensusString(bestMotifs);
+        System.out.print("\nConsensus String: " + consensusString + "\n");
+    }
+
+    private static String findConsensusString(String[] motifs) {
+        StringBuilder cs = new StringBuilder();
+
+        for( int j = 0; j < motifs[0].length(); j++) {
+            //Following format:
+            //A
+            //C
+            //G
+            //T
+            int[] scores = new int[4];
+
+            for(int i = 0; i < motifs.length; i++) {
+                switch (motifs[i].charAt(j)) {
+                    case 'A':
+                        scores[A] += 1;
+                        break;
+                    case 'C':
+                        scores[C] += 1;
+                        break;
+                    case 'G':
+                        scores[G] += 1;
+                        break;
+                    case 'T':
+                        scores[T] += 1;
+                        break;
+                }
+            }
+
+            int maxBaseScore = 0;
+            int maxBaseIndex = 0;
+
+           for(int i = 0; i < scores.length; i++) {
+               if(scores[i] > maxBaseScore) {
+                   maxBaseScore = scores[i];
+                   maxBaseIndex = i;
+               }
+           }
+
+            switch (maxBaseIndex) {
+                case A:
+                    cs.append("A");
+                    break;
+                case C:
+                    cs.append("C");
+                    break;
+                case G:
+                    cs.append("G");
+                    break;
+                case T:
+                    cs.append("T");
+                    break;
+            }
+        }
+
+
+
+        return cs.toString();
+    }
+
+    private static float calculateMotifScores(String[] motifs, float[][] profileMatrix) {
+        float totalScore = 0;
+
+        for(int i = 0; i < motifs.length; i++) {
+            float score = 1;
+            for(int j = 0; j < profileMatrix[A].length; j++) {
+                switch (motifs[i].charAt(j)) {
+                    case 'A':
+                        score *= profileMatrix[A][j];
+                        break;
+                    case 'C':
+                        score *= profileMatrix[C][j];
+                        break;
+                    case 'G':
+                        score *= profileMatrix[G][j];
+                        break;
+                    case 'T':
+                        score *= profileMatrix[T][j];
+                        break;
+                }
+            }
+
+            totalScore += score;
+        }
+
+        return totalScore;
     }
 
     private static String[] setMotifs(String[] sequences, float[][] profileMatrix, int consensusStringLen) {
@@ -127,6 +251,7 @@ public class Main {
 
         for (int i = 0; i < profileMatrix.length; i++) {
             for (int j = 0; j < profileMatrix[i].length; j++) {
+                profileMatrix[i][j] += 1;
                 profileMatrix[i][j] /= motifLen;
             }
         }

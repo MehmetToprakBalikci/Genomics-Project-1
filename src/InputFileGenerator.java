@@ -8,6 +8,7 @@ public class InputFileGenerator {
     protected static final int LINE_LENGTH = 500;
     protected static final int TOTAL_LINES = 10;
     private static final String KMER = "GTCTACGGC";
+    private static final int MutationCount = 4;
 
 
     public static void main(String[] args) {
@@ -76,7 +77,7 @@ public class InputFileGenerator {
         //System.out.println(Arrays.toString(kmers));
 
         //Mutate kmers
-        mutate(kmers, 4);
+        mutate(kmers, MutationCount);
 
         //System.out.println("\n after mutate: \n");
         //System.out.println(Arrays.toString(kmers));
