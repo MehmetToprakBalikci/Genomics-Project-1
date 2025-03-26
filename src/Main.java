@@ -61,6 +61,7 @@ public class Main {
             if (motifsScore > bestMotifsScore) {
                 bestMotifs = motifs.clone();
                 bestMotifsScore = motifsScore;
+                deadIterCount = 0;
             }
             else {
                 deadIterCount++;
