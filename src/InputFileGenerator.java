@@ -5,8 +5,8 @@ import java.util.Arrays;
 
 public class InputFileGenerator {
     private static final String BASES = "ACGT";
-    private static final int LINE_LENGTH = 500;
-    private static final int TOTAL_LINES = 10;
+    protected static final int LINE_LENGTH = 500;
+    protected static final int TOTAL_LINES = 10;
     private static final String KMER = "GTCTACGGC";
 
 
@@ -17,15 +17,18 @@ public class InputFileGenerator {
         //create k-mer, add mutations to k-mer
         StringBuilder[] kmers = createKMERS();
 
-        System.out.println("Inserted (mutated) Kmers:");
-        System.out.println(Arrays.toString(kmers));
+
+        System.out.print("\nInserted (Original) Kmer: ");
+        System.out.println(KMER+"\n");
+        System.out.println("\nInserted (mutated) Kmers:");
+        System.out.println(Arrays.toString(kmers)+"\n");
 
         //create dna string, inject kmers
         createDNA(kmers, dna);
 
 
         //Write to file
-        try (FileWriter writer = new FileWriter("input.txt")) {
+        try (FileWriter writer = new FileWriter("dna.txt")) {
             writer.write(dna.toString());
             //System.out.println("Input file generated successfully.");
         } catch (IOException e) {
