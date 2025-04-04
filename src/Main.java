@@ -38,10 +38,13 @@ public class Main {
 
         SecureRandom random = new SecureRandom();
         float maxProb = 0;
+        int i = 0;
         String [] motifs = initiateMotifs(sequences);
-
+        int identicals = 0;  // Number of last identical motifs. If last 10 motifs are identical, algorithm will terminate the execution.
         // Number of Iterations
-        for(int i = 0; i < 10; i++) {
+        while(true) {
+            float previousScore = calculateMotifScores(motifs, createProfileMatrix(motifs));
+            System.out.println("Previous score: " + previousScore);
             System.out.println("\nIteration: " + (i+1));
             int randomNumber = random.nextInt(motifs.length);
             String deletedMotif = motifs[randomNumber];
@@ -60,7 +63,21 @@ public class Main {
             // This part aims to calculate the score at the end of the Gibbs sampling for each iteration
             motifs[randomNumber] = maxMotif;
             profileMatrix = createProfileMatrix(motifs);
-            float score = calculateMotifScores(motifs, profileMatrix);
+            float currentScore = calculateMotifScores(motifs, createProfileMatrix(motifs));
+            if(currentScore == previousScore) {
+                identicals++;
+            } else {
+                identicals = 0;
+            }
+            System.out.println("Current score: " + currentScore);
+
+            if(identicals >= 10) {
+                System.out.println("Identical motifs found for 10 iterations. Stopping the algorithm.");
+                String consensusString = findConsensusString(motifs);
+                System.out.print("\nConsensus String: " + consensusString + "\n");
+                return;
+            }
+            i++;
         }
         
         
