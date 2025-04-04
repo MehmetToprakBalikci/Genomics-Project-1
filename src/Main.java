@@ -24,10 +24,42 @@ public class Main {
         //Generate dna
         InputFileGenerator.main(new String[0]);
         //Read generated dna
-        String[] sequences = readDNAFile();
-
+        String[] sequences = readFile("dna.txt");
         if(searchMethod.equalsIgnoreCase("r"))
             randomizedMotifSearch(sequences, consensusStringLen);
+
+    }
+
+    private static void GibbsSampling(String [] sequences, int consensusStringLen) {
+        //Gibbs sampling algorithm
+
+        SecureRandom random = new SecureRandom();
+        float maxProb = 0;
+        String [] motifs = initiateMotifs(sequences, consensusStringLen);
+
+        // Number of Iterations
+        for(int i = 0; i < 10; i++) {
+            int randomNumber = random.nextInt(motifs.length);
+            String deletedMotif = motifs[randomNumber];
+            String maxMotif = "";
+            motifs[randomNumber] = null;
+            float [][] profileMatrix = createProfileMatrix(motifs);
+            for(int j = 0; j<deletedMotif.length();j++){
+                String currentMotif = sequences[j].substring(j, j+consensusStringLen);
+                float probability = calculateSubStringProb(currentMotif, profileMatrix);
+                if(maxProb<probability){
+                    maxProb = probability;
+                    maxMotif = currentMotif;
+                }
+            }
+
+            // This part aims to calculate the score at the end of the Gibbs sampling for each iteration
+            motifs[randomNumber] = maxMotif;
+            profileMatrix = createProfileMatrix(motifs);
+            float score = calculateMotifScores(motifs, profileMatrix);
+        }
+        
+        
 
     }
 
@@ -58,7 +90,7 @@ public class Main {
             System.out.print("\nPrevious best motifs score: " + bestMotifsScore + "\n");
             System.out.print("\nFound motifs score: " + motifsScore + "\n");
 
-            if (motifsScore > bestMotifsScore) {
+            if (bestMotifsScore<motifsScore) {
                 bestMotifs = motifs.clone();
                 bestMotifsScore = motifsScore;
                 deadIterCount = 0;
@@ -226,8 +258,13 @@ public class Main {
         float[][] profileMatrix = new float[4][motifs[0].length()];
 
         int motifLen = motifs.length;
-
+        int nullCount = 0;
         for (String motif : motifs) {
+
+            if(motif == null) {
+                nullCount++;
+                continue;
+            }
             for (int j = 0; j < motif.length(); j++) {
                 switch (motif.charAt(j)) {
                     case 'A':
@@ -246,10 +283,14 @@ public class Main {
                         profileMatrix[T][j] += 1;
                         //System.out.println("T");
                         break;
+                    
+                    default:
+                        System.out.println("Invalid character in motif: " + motif.charAt(j));
+                        break;
                 }
             }
         }
-
+        motifLen-= nullCount;
         for (int i = 0; i < profileMatrix.length; i++) {
             for (int j = 0; j < profileMatrix[i].length; j++) {
                 profileMatrix[i][j] += 1;
@@ -272,12 +313,12 @@ public class Main {
         return motifs;
     }
 
-    private static String[] readDNAFile() {
+    private static String[] readFile(String fileName) {
         String[] sequences = new String[InputFileGenerator.TOTAL_LINES];
         int i = 0;
 
         try {
-            File file = new File("dna.txt");
+            File file = new File(fileName);
             Scanner scanner = new Scanner(file);
 
             while (scanner.hasNextLine()) {
