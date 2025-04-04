@@ -11,7 +11,7 @@ public class Main {
     private static final int C = 1;
     private static final int G = 2;
     private static final int T = 3;
-
+    private static int consensusStringLen = 0;
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
@@ -19,29 +19,33 @@ public class Main {
         String searchMethod = scanner.nextLine();
 
         System.out.print("Enter consensus string length: ");
-        int consensusStringLen = scanner.nextInt();
+        consensusStringLen = scanner.nextInt();
 
         //Generate dna
         InputFileGenerator.main(new String[0]);
         //Read generated dna
         String[] sequences = readFile("dna.txt");
         if(searchMethod.equalsIgnoreCase("r"))
-            randomizedMotifSearch(sequences, consensusStringLen);
+            randomizedMotifSearch(sequences);
+
+        else if(searchMethod.equalsIgnoreCase("g"))
+            GibbsSampling(sequences);
 
     }
 
-    private static void GibbsSampling(String [] sequences, int consensusStringLen) {
+    private static void GibbsSampling(String [] sequences) {
         //Gibbs sampling algorithm
 
         SecureRandom random = new SecureRandom();
         float maxProb = 0;
-        String [] motifs = initiateMotifs(sequences, consensusStringLen);
+        String [] motifs = initiateMotifs(sequences);
 
         // Number of Iterations
         for(int i = 0; i < 10; i++) {
+            System.out.println("\nIteration: " + (i+1));
             int randomNumber = random.nextInt(motifs.length);
             String deletedMotif = motifs[randomNumber];
-            String maxMotif = "";
+            String maxMotif = deletedMotif;
             motifs[randomNumber] = null;
             float [][] profileMatrix = createProfileMatrix(motifs);
             for(int j = 0; j<deletedMotif.length();j++){
@@ -63,11 +67,11 @@ public class Main {
 
     }
 
-    private static void randomizedMotifSearch(String[] sequences, int consensusStringLen) {
+    private static void randomizedMotifSearch(String[] sequences) {
         String[] bestMotifs = new String[InputFileGenerator.TOTAL_LINES];
         int deadIterCount = 0;
         //Generate random motifs
-        String[] motifs = initiateMotifs(sequences, consensusStringLen);
+        String[] motifs = initiateMotifs(sequences);
 
         bestMotifs = motifs.clone();
 
@@ -80,7 +84,7 @@ public class Main {
 
             System.out.println("\n" + Arrays.deepToString(profileMatrix));
 
-            motifs = setMotifs(sequences, profileMatrix, consensusStringLen);
+            motifs = setMotifs(sequences, profileMatrix);
 
             System.out.println("\n" + Arrays.toString(motifs));
 
@@ -199,7 +203,7 @@ public class Main {
         return totalScore;
     }
 
-    private static String[] setMotifs(String[] sequences, float[][] profileMatrix, int consensusStringLen) {
+    private static String[] setMotifs(String[] sequences, float[][] profileMatrix) {
         String subString;
         String[] bestSubStrings = new String[InputFileGenerator.TOTAL_LINES];
 
@@ -255,7 +259,7 @@ public class Main {
         //C[]-->4, 2 ...
         //G[]-->1, 4 ...
         //T[]-->3, 3 ...
-        float[][] profileMatrix = new float[4][motifs[0].length()];
+        float[][] profileMatrix = new float[4][consensusStringLen];
 
         int motifLen = motifs.length;
         int nullCount = 0;
@@ -302,7 +306,7 @@ public class Main {
         return profileMatrix;
     }
 
-    private static String[] initiateMotifs(String[] sequences , int consensusStringLen) {
+    private static String[] initiateMotifs(String[] sequences) {
         SecureRandom random = new SecureRandom();
         String[] motifs = new String[InputFileGenerator.TOTAL_LINES];
 
