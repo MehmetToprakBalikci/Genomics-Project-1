@@ -35,22 +35,24 @@ public class Main {
 
     private static void GibbsSampling(String [] sequences) {
         //Gibbs sampling algorithm
-
+        int avgScore = 0, bestScore = 0, i = 0;
         SecureRandom random = new SecureRandom();
         float maxProb = 0;
-        int i = 0;
         String [] motifs = initiateMotifs(sequences);
         int identicals = 0;  // Number of last identical motifs. If last 10 motifs are identical, algorithm will terminate the execution.
         // Number of Iterations
+        avgScore = calculateMotifScores(motifs);
         while(true) {
-            float previousScore = calculateMotifScores(motifs, createProfileMatrix(motifs));
+            int previousScore = calculateMotifScores(motifs);
             System.out.println("Previous score: " + previousScore);
             System.out.println("\nIteration: " + (i+1));
+            System.out.println("\n Current Motifs: " + Arrays.toString(motifs));
             int randomNumber = random.nextInt(motifs.length);
             String deletedMotif = motifs[randomNumber];
             String maxMotif = deletedMotif;
             motifs[randomNumber] = null;
             float [][] profileMatrix = createProfileMatrix(motifs);
+            System.out.println("\n Profile Matrix: " + Arrays.deepToString(profileMatrix));
             for(int j = 0; j<deletedMotif.length();j++){
                 String currentMotif = sequences[j].substring(j, j+consensusStringLen);
                 float probability = calculateSubStringProb(currentMotif, profileMatrix);
@@ -63,24 +65,31 @@ public class Main {
             // This part aims to calculate the score at the end of the Gibbs sampling for each iteration
             motifs[randomNumber] = maxMotif;
             profileMatrix = createProfileMatrix(motifs);
-            float currentScore = calculateMotifScores(motifs, createProfileMatrix(motifs));
+            int currentScore = calculateMotifScores(motifs);
+            String consensusString = findConsensusString(motifs);
+            System.out.print("\nConsensus String: " + consensusString + "\n");
+            avgScore+= currentScore;
             if(currentScore == previousScore) {
                 identicals++;
             } else {
                 identicals = 0;
             }
+            if(currentScore < previousScore) {
+                bestScore = currentScore; 
+            } else {
+                bestScore = previousScore;
+            }
+
             System.out.println("Current score: " + currentScore);
 
             if(identicals >= 10) {
                 System.out.println("Identical motifs found for 10 iterations. Stopping the algorithm.");
-                String consensusString = findConsensusString(motifs);
-                System.out.print("\nConsensus String: " + consensusString + "\n");
-                return;
+                break;
             }
             i++;
         }
-        
-        
+        System.out.println("Best Score: " + bestScore);
+        System.out.println("Average score: " + (avgScore*1.0/i));
 
     }
 
@@ -105,8 +114,8 @@ public class Main {
 
             System.out.println("\n" + Arrays.toString(motifs));
 
-            float motifsScore = calculateMotifScores(motifs, profileMatrix);
-            float bestMotifsScore = calculateMotifScores(bestMotifs, profileMatrix);
+            int motifsScore = calculateMotifScores(motifs);
+            int bestMotifsScore = calculateMotifScores(bestMotifs);
 
             System.out.print("\nPrevious best motifs score: " + bestMotifsScore + "\n");
             System.out.print("\nFound motifs score: " + motifsScore + "\n");
@@ -192,31 +201,16 @@ public class Main {
         return cs.toString();
     }
 
-    private static float calculateMotifScores(String[] motifs, float[][] profileMatrix) {
-        float totalScore = 0;
-
+    private static int calculateMotifScores(String[] motifs) {
+        int totalScore = 0;
+        String consensusString = findConsensusString(motifs);
         for(int i = 0; i < motifs.length; i++) {
-            float score = 1;
-            for(int j = 0; j < profileMatrix[A].length; j++) {
-                switch (motifs[i].charAt(j)) {
-                    case 'A':
-                        score *= profileMatrix[A][j];
-                        break;
-                    case 'C':
-                        score *= profileMatrix[C][j];
-                        break;
-                    case 'G':
-                        score *= profileMatrix[G][j];
-                        break;
-                    case 'T':
-                        score *= profileMatrix[T][j];
-                        break;
+            for(int j = 0; j < motifs[i].length(); j++) {
+                if(motifs[i].charAt(j) != consensusString.charAt(j)) {
+                    totalScore++;
                 }
             }
-
-            totalScore += score;
         }
-
         return totalScore;
     }
 
