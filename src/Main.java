@@ -53,10 +53,11 @@ public class Main {
             motifs[randomNumber] = null;
             float [][] profileMatrix = createProfileMatrix(motifs);
             System.out.println("\n Profile Matrix: " + Arrays.deepToString(profileMatrix));
+            maxProb = 0;
             for(int j = 0; j<sequences[randomNumber].length()-deletedMotif.length()+1;j++){
                 String currentMotif = sequences[randomNumber].substring(j, j+consensusStringLen);
                 float probability = calculateSubStringProb(currentMotif, profileMatrix);
-                if(maxProb<probability){
+                if(maxProb<=probability){
                     maxProb = probability;
                     maxMotif = currentMotif;
                 }
@@ -74,11 +75,9 @@ public class Main {
             } else {
                 identicals = 0;
             }
-            if(currentScore < previousScore) {
-                bestScore = currentScore; 
-            } else {
-                bestScore = previousScore;
-            }
+            if(bestScore > previousScore || bestScore == 0) {
+                bestScore = previousScore; 
+            } 
 
             System.out.println("Current score: " + currentScore);
 
@@ -167,6 +166,22 @@ public class Main {
                     case 'T':
                         scores[T] += 1;
                         break;
+
+                    case 'a':
+                        scores[A] += 1;
+                        break;
+                    
+                    case 'c':
+                        scores[C] += 1;
+                        break;
+                    
+                    case 'g':
+                        scores[G] += 1;
+                        break;
+                    
+                    case 't':
+                        scores[T] += 1;
+                        break;
                 }
             }
 
@@ -206,16 +221,10 @@ public class Main {
         String consensusString = findConsensusString(motifs);
         for(int i = 0; i < motifs.length; i++) {
             for(int j = 0; j < motifs[i].length(); j++) {
-                if(motifs[i].charAt(j) != consensusString.charAt(j)) {
+                if (Character.toUpperCase(motifs[i].charAt(j)) != Character.toUpperCase(consensusString.charAt(j))) {
                     totalScore++;
                 }
 
-                else if((int)motifs[i].charAt(j) - (int)consensusString.charAt(j) != 32) {
-                    totalScore++;
-                }
-                else if((int)motifs[i].charAt(j) - (int)consensusString.charAt(j) != -32) {
-                    totalScore++;
-                }
             }
         }
         return totalScore;
