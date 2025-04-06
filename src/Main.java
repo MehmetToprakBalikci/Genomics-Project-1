@@ -153,7 +153,7 @@ public class Main {
             int[] scores = new int[4];
 
             for(int i = 0; i < motifs.length; i++) {
-                switch (motifs[i].charAt(j)) {
+                switch (Character.toUpperCase(motifs[i].charAt(j))) {
                     case 'A':
                         scores[A] += 1;
                         break;
@@ -164,22 +164,6 @@ public class Main {
                         scores[G] += 1;
                         break;
                     case 'T':
-                        scores[T] += 1;
-                        break;
-
-                    case 'a':
-                        scores[A] += 1;
-                        break;
-                    
-                    case 'c':
-                        scores[C] += 1;
-                        break;
-                    
-                    case 'g':
-                        scores[G] += 1;
-                        break;
-                    
-                    case 't':
                         scores[T] += 1;
                         break;
                 }
@@ -261,7 +245,7 @@ public class Main {
         float prob = 1;
 
         for(int i = 0; i < profileMatrix[A].length; i++) {
-            switch (subString.charAt(i)) {
+            switch (Character.toUpperCase(subString.charAt(i))) {
                 case 'A':
                     prob *= profileMatrix[A][i];
                     break;
@@ -297,7 +281,7 @@ public class Main {
                 continue;
             }
             for (int j = 0; j < motif.length(); j++) {
-                switch (motif.charAt(j)) {
+                switch (Character.toUpperCase(motif.charAt(j))) {
                     case 'A':
                         profileMatrix[A][j] += 1;
                         //System.out.println("A");
@@ -315,25 +299,6 @@ public class Main {
                         //System.out.println("T");
                         break;
 
-                    case 'a':
-                        profileMatrix[A][j] += 1;
-                        //System.out.println("a");
-                        break;
-
-                    case 'c':
-                        profileMatrix[C][j] += 1;
-                        //System.out.println("c");
-                        break;
-                    
-                    case 'g':
-                        profileMatrix[G][j] += 1;
-                        //System.out.println("g");
-                        break;
-
-                    case 't':
-                        profileMatrix[T][j] += 1;
-                        //System.out.println("t");
-                        break;
                     
                     default:
                         System.out.println("Invalid character in motif: " + motif.charAt(j));
