@@ -61,6 +61,7 @@ public class InputFileGenerator {
                 while (random_base == reference_base)
                     random_base = BASES.charAt(random.nextInt(BASES.length()));
 
+                random_base = (char)((int)random_base+32); //convert to lowercase
                 kmers[i].setCharAt(random_i, random_base);
             }
         }

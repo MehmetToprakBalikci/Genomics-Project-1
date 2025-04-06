@@ -53,8 +53,8 @@ public class Main {
             motifs[randomNumber] = null;
             float [][] profileMatrix = createProfileMatrix(motifs);
             System.out.println("\n Profile Matrix: " + Arrays.deepToString(profileMatrix));
-            for(int j = 0; j<deletedMotif.length();j++){
-                String currentMotif = sequences[j].substring(j, j+consensusStringLen);
+            for(int j = 0; j<sequences[randomNumber].length()-deletedMotif.length()+1;j++){
+                String currentMotif = sequences[randomNumber].substring(j, j+consensusStringLen);
                 float probability = calculateSubStringProb(currentMotif, profileMatrix);
                 if(maxProb<probability){
                     maxProb = probability;
@@ -209,6 +209,13 @@ public class Main {
                 if(motifs[i].charAt(j) != consensusString.charAt(j)) {
                     totalScore++;
                 }
+
+                else if((int)motifs[i].charAt(j) - (int)consensusString.charAt(j) != 32) {
+                    totalScore++;
+                }
+                else if((int)motifs[i].charAt(j) - (int)consensusString.charAt(j) != -32) {
+                    totalScore++;
+                }
             }
         }
         return totalScore;
@@ -297,6 +304,26 @@ public class Main {
                     case 'T':
                         profileMatrix[T][j] += 1;
                         //System.out.println("T");
+                        break;
+
+                    case 'a':
+                        profileMatrix[A][j] += 1;
+                        //System.out.println("a");
+                        break;
+
+                    case 'c':
+                        profileMatrix[C][j] += 1;
+                        //System.out.println("c");
+                        break;
+                    
+                    case 'g':
+                        profileMatrix[G][j] += 1;
+                        //System.out.println("g");
+                        break;
+
+                    case 't':
+                        profileMatrix[T][j] += 1;
+                        //System.out.println("t");
                         break;
                     
                     default:
