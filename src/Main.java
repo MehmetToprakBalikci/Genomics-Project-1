@@ -119,7 +119,7 @@ public class Main {
             System.out.print("\nPrevious best motifs score: " + bestMotifsScore + "\n");
             System.out.print("\nFound motifs score: " + motifsScore + "\n");
 
-            if (bestMotifsScore<motifsScore) {
+            if (bestMotifsScore>motifsScore) {
                 bestMotifs = motifs.clone();
                 bestMotifsScore = motifsScore;
                 deadIterCount = 0;
